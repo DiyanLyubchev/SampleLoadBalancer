@@ -5,10 +5,10 @@ using System.Management;
 
 
 string projectRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
-string logFilePath = Path.Combine(projectRoot, "loadbalancer_log.txt");
+string logFilePath = Path.Combine(projectRoot, "LoadBalancerLog.txt");
 TimeSpan interval = TimeSpan.FromMinutes(30);
 
-Console.WriteLine("Simple Load Balancer started. Monitoring every 30 minutes.");
+Console.WriteLine("Monitoring every 30 minutes.");
 
 while (true)
 {
@@ -24,6 +24,11 @@ while (true)
     Console.WriteLine(logEntry);
 
     await File.AppendAllTextAsync(logFilePath, logEntry + Environment.NewLine);
+
+    if (systemCpuUsage >= 85)
+    {
+        SendMail();
+    }
 
     await Task.Delay(interval);
 }
@@ -61,7 +66,7 @@ static double GetSystemMemoryUsage()
     {
         PerformanceCounter pc = new("Memory", "Available KBytes");
         double availableKB = pc.NextValue();
-        double totalMB = GetTotalMemoryInMB_Windows();
+        double totalMB = GetTotalMemoryInMBWindows();
         return (totalMB * 1024) - availableKB;
     }
     else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -83,7 +88,7 @@ static double GetSystemMemoryUsage()
     }
 }
 
-static double GetTotalMemoryInMB_Windows()
+static double GetTotalMemoryInMBWindows()
 {
     PerformanceCounter pc = new("Memory", "Committed Bytes");
     return pc.NextValue() / (1024.0 * 1024.0);
@@ -127,4 +132,10 @@ static double GetSystemCpuUsageLinux()
     double totalDelta = total2 - total1;
 
     return 100.0 * (1.0 - idleDelta / totalDelta);
+
+}
+
+static void SendMail()
+{
+    Console.WriteLine("ALERT: System CPU usage exceeded threshold. Sending notification email...");
 }
