@@ -9,9 +9,8 @@ string logFilePath = Path.Combine(projectRoot, "LoadBalancerLog.txt");
 TimeSpan interval = TimeSpan.FromMinutes(30);
 
 Console.WriteLine("Monitoring every 30 minutes.");
-bool isCpuExceededUsage = false;
 
-while (!isCpuExceededUsage)
+while (true)
 {
     string processCpuUsage = GetApplicationCpuUsage();
     double processMemoryUsage = GetApplicationMemoryUsage();
@@ -30,7 +29,6 @@ while (!isCpuExceededUsage)
     {
         SendMailDummy();
         IncreaseCpuUsageDummy();
-        isCpuExceededUsage = true;
     }
 
     await Task.Delay(interval);
