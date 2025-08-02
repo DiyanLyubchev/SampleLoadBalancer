@@ -25,6 +25,11 @@ while (true)
 
     await File.AppendAllTextAsync(logFilePath, logEntry + Environment.NewLine);
 
+    if (systemCpuUsage >= 85)
+    {
+        SendMail();
+    }
+
     await Task.Delay(interval);
 }
 
@@ -127,4 +132,10 @@ static double GetSystemCpuUsageLinux()
     double totalDelta = total2 - total1;
 
     return 100.0 * (1.0 - idleDelta / totalDelta);
+
+}
+
+static void SendMail()
+{
+    Console.WriteLine("ALERT: System CPU usage exceeded threshold. Sending notification email...");
 }
