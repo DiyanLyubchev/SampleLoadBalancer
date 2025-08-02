@@ -9,8 +9,9 @@ string logFilePath = Path.Combine(projectRoot, "LoadBalancerLog.txt");
 TimeSpan interval = TimeSpan.FromMinutes(30);
 
 Console.WriteLine("Monitoring every 30 minutes.");
+bool isCpuExceededUsage = false;
 
-while (true)
+while (!isCpuExceededUsage)
 {
     string processCpuUsage = GetApplicationCpuUsage();
     double processMemoryUsage = GetApplicationMemoryUsage();
@@ -28,6 +29,7 @@ while (true)
     if (systemCpuUsage >= 85)
     {
         SendMail();
+        isCpuExceededUsage = true;
     }
 
     await Task.Delay(interval);
@@ -118,21 +120,22 @@ static double GetSystemCpuUsage()
 
 static double GetSystemCpuUsageLinux()
 {
-    var cpuLine1 = File.ReadLines("/proc/stat").First(line => line.StartsWith("cpu "));
-    var values1 = cpuLine1.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).Select(double.Parse).ToArray();
-    double idle1 = values1[3], total1 = values1.Sum();
+    var firstCpuStatLine = File.ReadLines("/proc/stat").First(line => line.StartsWith("cpu "));
+    var firstCpuValues = firstCpuStatLine.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).Select(double.Parse).ToArray();
+    double firstIdleTime = firstCpuValues[3];
+    double firstTotalTime = firstCpuValues.Sum();
 
     Thread.Sleep(500);
 
-    var cpuLine2 = File.ReadLines("/proc/stat").First(line => line.StartsWith("cpu "));
-    var values2 = cpuLine2.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).Select(double.Parse).ToArray();
-    double idle2 = values2[3], total2 = values2.Sum();
+    var secondCpuStatLine = File.ReadLines("/proc/stat").First(line => line.StartsWith("cpu "));
+    var secondCpuValues = secondCpuStatLine.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).Select(double.Parse).ToArray();
+    double secondIdleTime = secondCpuValues[3];
+    double secondTotalTime = secondCpuValues.Sum();
 
-    double idleDelta = idle2 - idle1;
-    double totalDelta = total2 - total1;
+    double idleTimeDifference = secondIdleTime - firstIdleTime;
+    double totalTimeDifference = secondTotalTime - firstTotalTime;
 
-    return 100.0 * (1.0 - idleDelta / totalDelta);
-
+    return 100.0 * (1.0 - idleTimeDifference / totalTimeDifference);
 }
 
 static void SendMail()
