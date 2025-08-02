@@ -29,6 +29,7 @@ while (!isCpuExceededUsage)
     if (systemCpuUsage >= 85)
     {
         SendMail();
+        IncreaseCpuUsageDummy();
         isCpuExceededUsage = true;
     }
 
@@ -141,4 +142,18 @@ static double GetSystemCpuUsageLinux()
 static void SendMail()
 {
     Console.WriteLine("ALERT: System CPU usage exceeded threshold. Sending notification email...");
+}
+
+static void IncreaseCpuUsageDummy()
+{
+    Console.WriteLine("Simulating increased CPU usage...");
+    var sw = Stopwatch.StartNew();
+
+    while (sw.Elapsed < TimeSpan.FromSeconds(5))
+    {
+        double x = Math.Sqrt(sw.ElapsedMilliseconds);
+    }
+
+    sw.Stop();
+    Console.WriteLine("CPU usage simulation complete.");
 }
