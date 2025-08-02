@@ -1,8 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.IO;
 using System.Management; 
+
 
 string projectRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
 string logFilePath = Path.Combine(projectRoot, "loadbalancer_log.txt");
@@ -15,10 +15,11 @@ while (true)
     string processCpuUsage = GetApplicationCpuUsage();
     double processMemoryUsage = GetApplicationMemoryUsage();
     double systemMemoryUsage = GetSystemMemoryUsage();
+    double systemCpuUsage = GetSystemCpuUsage();
 
     string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | " +
                       $"Application Process CPU: {processCpuUsage} | Application Process Memory: {processMemoryUsage:F2} MB | " +
-                      $"System Memory Used: {systemMemoryUsage:F2} MB | System CPU Usage: {GetSystemCpuUsage()}%";
+                      $"System CPU: {systemCpuUsage:F2}% | System Memory Used: {systemMemoryUsage:F2} MB";
 
     Console.WriteLine(logEntry);
 
@@ -98,7 +99,6 @@ static double GetSystemCpuUsage()
         {
             cpuUsage += Convert.ToDouble(obj["LoadPercentage"]);
         }
-
         return cpuUsage / Environment.ProcessorCount;
     }
     else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -113,18 +113,18 @@ static double GetSystemCpuUsage()
 
 static double GetSystemCpuUsageLinux()
 {
-    var cpuInfo = File.ReadAllLines("/proc/stat").FirstOrDefault();
-    if (cpuInfo != null)
-    {
-        var data = cpuInfo.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        double idleCpuTime = double.Parse(data[4]);
-        double totalCpuTime = 0;
-        for (int i = 1; i < data.Length; i++)
-        {
-            totalCpuTime += double.Parse(data[i]);
-        }
-        double cpuUsage = ((totalCpuTime - idleCpuTime) / totalCpuTime) * 100;
-        return cpuUsage;
-    }
-    return 0;
+    var cpuLine1 = File.ReadLines("/proc/stat").First(line => line.StartsWith("cpu "));
+    var values1 = cpuLine1.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).Select(double.Parse).ToArray();
+    double idle1 = values1[3], total1 = values1.Sum();
+
+    Thread.Sleep(500);
+
+    var cpuLine2 = File.ReadLines("/proc/stat").First(line => line.StartsWith("cpu "));
+    var values2 = cpuLine2.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).Select(double.Parse).ToArray();
+    double idle2 = values2[3], total2 = values2.Sum();
+
+    double idleDelta = idle2 - idle1;
+    double totalDelta = total2 - total1;
+
+    return 100.0 * (1.0 - idleDelta / totalDelta);
 }

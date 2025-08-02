@@ -1,2 +1,0 @@
-2025-08-02 20:37:21 | Application Process CPU: 1,16% | Application Process Memory: 31,40 MB | System Memory Used: 7542628,00 MB | System CPU Usage: 1,75%
-2025-08-02 20:40:23 | Application Process CPU: 0,39% | Application Process Memory: 30,11 MB | System Memory Used: 7457552,00 MB | System CPU Usage: 1,25%
