@@ -28,7 +28,7 @@ while (!isCpuExceededUsage)
 
     if (systemCpuUsage >= 85)
     {
-        SendMail();
+        SendMailDummy();
         IncreaseCpuUsageDummy();
         isCpuExceededUsage = true;
     }
@@ -139,7 +139,7 @@ static double GetSystemCpuUsageLinux()
     return 100.0 * (1.0 - idleTimeDifference / totalTimeDifference);
 }
 
-static void SendMail()
+static void SendMailDummy()
 {
     Console.WriteLine("ALERT: System CPU usage exceeded threshold. Sending notification email...");
 }
