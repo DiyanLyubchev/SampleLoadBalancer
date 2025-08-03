@@ -1,0 +1,4 @@
+1. Start server one and server two 
+2. Start HttpLoadBalancer 
+3 In bash run:
+curl http://localhost:8080/
